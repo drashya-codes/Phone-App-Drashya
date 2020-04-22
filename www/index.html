@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Gravt</title>
+<title>draggy</title>
 
 <!-- Welcome to ZIM at https://zimjs.com - Code Creativity!              	        -->
 <!-- ZIM runs on the HTML Canvas powered by JavaScript and CreateJS https://createjs.com -->
@@ -10,10 +10,7 @@
 <!-- ZIM is free to use. You can donate to help improve ZIM at https://zimjs.com/donate 	-->
 
 <script src="js/createjs_1.1_min.js"></script>
-<script src="js/zim_10.2.0.js"></script>
-<script src="js/Box2dWeb-2.1.a.3.min.js"></script>
-<script src="js/physics_2.0.js"></script>
-<script src="js/pizzazz_02.js"></script>
+<script src="js/zim_10.js"></script>
 <!-- use zimjs.com/distill for minified individual functions! -->
 
 <script>
@@ -25,148 +22,35 @@
 // "full"	sets stage to window size with no scaling
 // "tagID"	add canvas to HTML tag of ID - set to dimensions if provided - no scaling
 
-var scaling = "full";
-var assets = ["bg_volcano_1.png","bg_volcano_2.png","bg_volcano_3.png","bg_volcano_4.png","bg_volcano_5.png","bg_volcano_6.png","lava0.png","lavaTop.png",
-"crocoboy.png"];
-var path = "img/"
+var scaling = "fit"; // this will resize to fit inside the screen dimensions
+var width = 1024;
+var height = 768;
+var color = light; // ZIM colors like green, blue, pink, faint, clear, etc. available globally
+var outerColor = dark; // any HTML colors like "violet", "#333", etc. fine to use
 
-var frame = new Frame({scaling, assets, path});
+var frame = new Frame(scaling, width, height, color, outerColor);
 frame.on("ready", function() {
     zog("ready from ZIM Frame"); // logs in console (F12 - choose console)
+
     var stage = frame.stage;
     var stageW = frame.width;
     var stageH = frame.height;
 
-    var bg; var stand;
-    var crocoboy;
-    var leftBtn; var rightBtn; var jumpBtn; var actionBtn;
+    // see https://zimjs.com/learn.html for video and code tutorials
+    // see https://zimjs.com/docs.html for documentation
+    // see https://zimjs.com/bits.html for 64 Interactive Media techniques
 
-    var physics = new Physics(10);
-    physics.drag();
-    // physics.debug();
-    var stage1 = new Container(stageW, stageH).addTo();
-    var stage2 = new Container(stageW, stageH).addTo();
-    var pages = new Pages({
-        pages: [
-            {page: stage1},
-            {page: stage2}
-        ],
-        transition: "swipe",
-        speed: 500
-    }).addTo();
-    makeBackground();
-    makeStand();
-    makeChar();
-    makeControls();
-    function makeBackground() {
-        bg = new Container(stageW, stageH).addTo(stage1);
-        var bg6 = frame.asset("bg_volcano_6.png").center(bg).pos({bottom: true});
-        var bg5 = frame.asset("bg_volcano_5.png").center(bg).pos();
-        var bg4 = frame.asset("bg_volcano_4.png").center(bg).pos({bottom: true});
-        var bg3 = frame.asset("bg_volcano_3.png").center(bg).pos({bottom: true});
-        var bg2 = frame.asset("bg_volcano_2.png").center(bg).pos({bottom: true});
-        var bg1 = frame.asset("bg_volcano_1.png").center(bg).pos({bottom: true});
-        var lava = frame.asset("lava0.png");
-        var lavaTop = frame.asset("lavaTop.png");
-        var lavaTile = new Tile({
-           obj:series(lavaTop, lavaTop, lavaTop, lavaTop, lavaTop, lavaTop, lavaTop, lavaTop, lavaTop, lavaTop),
-           cols:10, rows:1,
-        }).center(bg).pos({bottom: true});
-        // var triLeft = new Triangle(stageW/2-100, stageH, -1, "black").addTo(bg).pos({bottom: true, x: 0}).rot(180).outline();
-        // var triRight = new Triangle(stageH, stageW/2-100, -1, "black").addTo(bg).pos({bottom: true, x: stageW-stageW/2+100}).rot(270).outline();
-    }
-    function makeStand() {
-        stand = new Container(stageW, stageH).addTo(stage1);
-        var rect1 = new Rectangle(300, 5, black).addTo(stand).pos(null, 450).addPhysics();
-        var rect2 = new Rectangle(600, 5, black).addTo(stand).pos(null, 350, true).addPhysics();
-        // var rect = new Rectangle(200, 100, black).center(stand);
-    }
-    function makeChar() {
-        var sprite = frame.asset("crocoboy.png");
-        crocoboy = new Sprite({
-            image:sprite,
-            cols:2,
-            rows:5,
-            animations:{idle:[0,1], run:[2,5], jump:[6,7], dizzy:[8,9]}
-        }).sca(0.1).alp(0.8).centerReg().addPhysics();
-        crocoboy.center(stage);
-        crocoboy.run({time:500, label:"idle", loop:true});
-    }
+    // put your code here (you can delete this sample code)
 
-    frame.on("resize", () => {
-        stage1.scaleTo(stage, 100, 100, "both");
-        bg.scaleTo(stage, 100, 100, "both");
-        pages.resize();
-        stage.update();
-    })
+    // with chaining - can also assign to a variable for later access
+    new Circle(100, pink)
+        .center()
+        .drag();
 
-    function makeControls() {
-        var dirControls = new Container();
-        var actionControls = new Container();
-        var right =  pizzazz.makeIcon({type:"play", color:white});
-        var action =  pizzazz.makeIcon({type:"maximize", color:white, scale: 0.8});
-        var jump =  new Label({
-            text: "",
-            color: white,
-
-        });
-        rightBtn = new Button({
-			width:60,
-			height:60,
-			backgroundColor:"transparent",
-			rollBackgroundColor:"transparent",
-			gradient:.3,
-			corner:30,
-			icon:right
-		}).center(dirControls).pos(10, null);
-        leftBtn = rightBtn.clone().rot(180).center(dirControls).pos(-10, null);
-        dirControls.pos(30, 30 , null, true);
-
-        actionBtn = new Button({
-			width:60,
-			height:60,
-			backgroundColor:"transparent",
-			rollBackgroundColor:"transparent",
-			gradient:.3,
-			corner:30,
-			icon:action
-		}).center(actionControls).pos(null, 10);
-        jumpBtn = new Button({
-            label: jump,
-			width:60,
-			height:60,
-			backgroundColor:"transparent",
-			rollBackgroundColor:"transparent",
-			gradient:.3,
-			corner:30
-		}).center(actionControls).pos(null, -30);
-        actionControls.pos(30, 30 , true, true);
-    }
-
-    frame.on("keydown", function (e) {
-        if (e.keyCode == 37) {
-            crocoboy.run({label:"run", time:200});
-            crocoboy.mov(-15,null);
-        }
-    });
-    frame.on("keydown", function (e) {
-        if (e.keyCode == 39) {
-            crocoboy.run({label:"run", time:200});
-            crocoboy.mov(15,null);
-        }
-    });
-    frame.on("keyup", function (e) {
-        if (e.keyCode == 37) {
-            crocoboy.run({label:"idle", time:500, loop: true});
-        }
-    });
-    frame.on("keyup", function (e) {
-        if (e.keyCode == 37) {
-            crocoboy.run({label:"idle", time:500, loop: true});
-        }
-    });
-    function toStage2() {pages.go(stage2, "up")};
-    function toStage1() {pages.go(stage1, "down")};
+    // without chaining
+    // var circle = new Circle(100, pink);
+    // circle.center();
+    // circle.drag();
 
     stage.update(); // this is needed to show any changes
 
