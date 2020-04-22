@@ -2,210 +2,173 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Mobile App Raman</title>
+<title>Gravt</title>
 
-<script src="libs/createjs_1.1_min.js"></script>
+<!-- Welcome to ZIM at https://zimjs.com - Code Creativity!              	        -->
+<!-- ZIM runs on the HTML Canvas powered by JavaScript and CreateJS https://createjs.com -->
+<!-- Founded by Inventor Dan Zen - https://danzen.com - Canadian New Media Award Winner 	-->
+<!-- ZIM is free to use. You can donate to help improve ZIM at https://zimjs.com/donate 	-->
+
+<script src="js/createjs_1.1_min.js"></script>
+<script src="js/zim_10.2.0.js"></script>
+<script src="js/Box2dWeb-2.1.a.3.min.js"></script>
+<script src="js/physics_2.0.js"></script>
+<script src="js/pizzazz_02.js"></script>
+<!-- use zimjs.com/distill for minified individual functions! -->
+
 <script>
-	var zon = true;
-	var zns = false;
-</script>
-<script src="libs/zim_6.9.0.js"></script>
 
+// SCALING OPTIONS
+// scaling can have values as follows with full being the default
+// "fit"	sets canvas and stage to dimensions and scales to fit inside window size
+// "outside"	sets canvas and stage to dimensions and scales to fit outside window size
+// "full"	sets stage to window size with no scaling
+// "tagID"	add canvas to HTML tag of ID - set to dimensions if provided - no scaling
 
-<script>
-// var scaling = "fit";
-// var width = 1024;
-// var height = 768;
+var scaling = "full";
+var assets = ["bg_volcano_1.png","bg_volcano_2.png","bg_volcano_3.png","bg_volcano_4.png","bg_volcano_5.png","bg_volcano_6.png","lava0.png","lavaTop.png",
+"crocoboy.png"];
+var path = "img/"
 
-var frame = new Frame("full");
+var frame = new Frame({scaling, assets, path});
 frame.on("ready", function() {
-
-    frame.loadAssets(['bowserB.png', 'bowserf.png'], "assets/");
-
+    zog("ready from ZIM Frame"); // logs in console (F12 - choose console)
     var stage = frame.stage;
     var stageW = frame.width;
     var stageH = frame.height;
-    frame.outerColor = "#444";
-    frame.color = "#ddd";
 
-    frame.on('complete', function(){
-      let bowserbSprite = frame.asset('bowserB.png');
-      let bowserfSprite = frame.asset('bowserf.png');
+    var bg; var stand;
+    var crocoboy;
+    var leftBtn; var rightBtn; var jumpBtn; var actionBtn;
 
-      let bowserBack = new Sprite({
-        image: bowserbSprite,
-        cols: 11,
-        rows: 1,
-        width: 343,
-        offsetX: 5,
-        animations: {ride:[0,10]}
-      });
-
-      let bowserFront = new Sprite({
-        image: bowserfSprite,
-        cols: 11,
-        rows: 1,
-        width: 340,
-				offsetX: -3,
-        animations: {leftToRight:[0,5]}
-      });
-
-      let layoutManager = new LayoutManager;
-
-      let page1 = new Container();
-      let page2 = new Container();
-
-      //Page 1 stuff
-      let content = new Container(stageW, stageH*0.9).addTo(page1);
-
-      let footer = new Tabs({
-          tabs:["Page1","Page2"]
-      }).addTo(page1);
-
-      let layout1 = new Layout(page1, [
-        {object: content, marginTop:0, backgroundColor:frame.blue},
-        {object: footer, marginTop:1, maxWidth:70, minHeight: 3, height: 5}
-      ], 5, frame.grey, null, new Shape(), stage);
-      layoutManager.add(layout1);
-
-      //Page 2 stuff
-      let content2 = new Container(stageW, stageH*0.9).addTo(page2);
-      // let circle = new Circle(10, frame.green).center(content).drag();
-      let footer2 = new Tabs({
-          tabs:["Page1","Page2"]
-      }).addTo(page2);
-
-      let layout2 = new Layout(page2, [
-        {object: content2, marginTop:0, backgroundColor:frame.blue},
-        {object: footer2, marginTop:1, maxWidth:70, minHeight: 3, height: 5}
-      ], 5, frame.grey, null, new Shape(), stage);
-      layoutManager.add(layout2);
-
-      let pages = new Pages({
+    var physics = new Physics(10);
+    physics.drag();
+    // physics.debug();
+    var stage1 = new Container(stageW, stageH).addTo();
+    var stage2 = new Container(stageW, stageH).addTo();
+    var pages = new Pages({
         pages: [
-          {page:page2, swipe:['page1', 'page1', null, null]},
-          {page:page1, swipe:['page2', 'page2', null, null]}
+            {page: stage1},
+            {page: stage2}
         ],
-        transition: 'slide',
-        speed: 1000
-      }).addTo();
+        transition: "swipe",
+        speed: 500
+    }).addTo();
+    makeBackground();
+    makeStand();
+    makeChar();
+    makeControls();
+    function makeBackground() {
+        bg = new Container(stageW, stageH).addTo(stage1);
+        var bg6 = frame.asset("bg_volcano_6.png").center(bg).pos({bottom: true});
+        var bg5 = frame.asset("bg_volcano_5.png").center(bg).pos();
+        var bg4 = frame.asset("bg_volcano_4.png").center(bg).pos({bottom: true});
+        var bg3 = frame.asset("bg_volcano_3.png").center(bg).pos({bottom: true});
+        var bg2 = frame.asset("bg_volcano_2.png").center(bg).pos({bottom: true});
+        var bg1 = frame.asset("bg_volcano_1.png").center(bg).pos({bottom: true});
+        var lava = frame.asset("lava0.png");
+        var lavaTop = frame.asset("lavaTop.png");
+        var lavaTile = new Tile({
+           obj:series(lavaTop, lavaTop, lavaTop, lavaTop, lavaTop, lavaTop, lavaTop, lavaTop, lavaTop, lavaTop),
+           cols:10, rows:1,
+        }).center(bg).pos({bottom: true});
+        // var triLeft = new Triangle(stageW/2-100, stageH, -1, "black").addTo(bg).pos({bottom: true, x: 0}).rot(180).outline();
+        // var triRight = new Triangle(stageH, stageW/2-100, -1, "black").addTo(bg).pos({bottom: true, x: stageW-stageW/2+100}).rot(270).outline();
+    }
+    function makeStand() {
+        stand = new Container(stageW, stageH).addTo(stage1);
+        var rect1 = new Rectangle(300, 5, black).addTo(stand).pos(null, 450).addPhysics();
+        var rect2 = new Rectangle(600, 5, black).addTo(stand).pos(null, 350, true).addPhysics();
+        // var rect = new Rectangle(200, 100, black).center(stand);
+    }
+    function makeChar() {
+        var sprite = frame.asset("crocoboy.png");
+        crocoboy = new Sprite({
+            image:sprite,
+            cols:2,
+            rows:5,
+            animations:{idle:[0,1], run:[2,5], jump:[6,7], dizzy:[8,9]}
+        }).sca(0.1).alp(0.8).centerReg().addPhysics();
+        crocoboy.center(stage);
+        crocoboy.run({time:500, label:"idle", loop:true});
+    }
 
-      footer.on('change', function(){
-        pages.go(page2);
-        footer.selectedIndex = 0;
-      });
-
-      footer2.on('change', function(){
-        pages.go(page1);
-        footer.selectedIndex = 1;
-      });
-
-			let upBowsers = 0;
-			let sideBowsers = 0;
-
-			let directions = new Label({
-				text: 'Tap the bowsers!',
-				size: 20,
-				color: frame.black
-			}).centerReg(content2);
-
-			let bowserNum = new Label({
-			   text:`There are: ${upBowsers} bowsers
-who have gone up!`,
-			   size:20,
-			   font:"courier",
-			   color:"#7647A2"
-		  }).addTo(content).pos(stageW/2 - 125, 200);
-
-			let bowserNum2 = new Label({
-			   text:`There are: ${sideBowsers} bowsers
-who are moving left!`,
-			   size:20,
-			   font:"courier",
-			   color:"#7647A2"
-		  }).addTo(content).pos(stageW/2 - 125, 400);
-
-      bowserBack.centerReg(content2).sca(2).mov(0,-100);
-      bowserBack.run({
-        time: 2000,
-        label: 'ride',
-        rewind: true,
-        loop: true
-      });
-
-			bowserBack.on('click', ()=>{
-				upBowsers += 1;
-				bowserNum.text = `There are: ${upBowsers} bowsers
-who have gone up!`;
-				let coords = randCoord();
-				let fClone = bowserBack.clone().centerReg(content2).mov(coords.x, coords.y);
-				fClone.animate({
-					obj:{y:stageH - (stageH + 20)},
-					ease:"ease",
-					time:2500
-				});
-				fClone.run({
-					time: 2000,
-					label: 'ride',
-					rewind: true,
-					loop: true
-				});
-				stage.update();
-			});
-
-      bowserFront.centerReg(content2).sca(2).mov(0, 200);
-			bowserFront.run({
-				time: 2000,
-				startFrame:5,
-				endFrame: 0,
-				rewind: true,
-				loop: true
-			});
-
-			function randCoord() {
-				let randx = Math.floor(Math.random() * 300) - 150;
-				let randy = Math.floor(Math.random() * 300) - 150;
-				return {
-					x: randx,
-					y: randy
-				}
-			}
-
-			bowserFront.on('click', ()=>{
-				sideBowsers += 1;
-				bowserNum2.text = `There are: ${sideBowsers} bowsers
-who are moving left!`
-				let coords = randCoord();
-				let bClone = bowserFront.clone().centerReg(content2).mov(coords.x, coords.y);
-				bClone.animate({
-					obj:{x:stageW - (stageW + 20)},
-					ease:"ease",
-					time:2500
-				});
-				bClone.run({
-					time: 2000,
-					startFrame:5,
-					endFrame: 0,
-					rewind: true,
-					loop: true
-				});
-				stage.update();
-			});
-
-      frame.on('resize', resize);
-      function resize() {
-        stageW = frame.width;
-        stageH = frame.height;
-        //Resize elements of the page like this
-        //rect.siz(stageW*0.8).pos((stageW - rect.width) * 0.5, 0.05*stageH);
-        layoutManager.resize();
+    frame.on("resize", () => {
+        stage1.scaleTo(stage, 100, 100, "both");
+        bg.scaleTo(stage, 100, 100, "both");
+        pages.resize();
         stage.update();
-      }
-      resize();
-      layoutManager.dispose();
-    });
+    })
 
-    stage.update();
+    function makeControls() {
+        var dirControls = new Container();
+        var actionControls = new Container();
+        var right =  pizzazz.makeIcon({type:"play", color:white});
+        var action =  pizzazz.makeIcon({type:"maximize", color:white, scale: 0.8});
+        var jump =  new Label({
+            text: "",
+            color: white,
+
+        });
+        rightBtn = new Button({
+			width:60,
+			height:60,
+			backgroundColor:"transparent",
+			rollBackgroundColor:"transparent",
+			gradient:.3,
+			corner:30,
+			icon:right
+		}).center(dirControls).pos(10, null);
+        leftBtn = rightBtn.clone().rot(180).center(dirControls).pos(-10, null);
+        dirControls.pos(30, 30 , null, true);
+
+        actionBtn = new Button({
+			width:60,
+			height:60,
+			backgroundColor:"transparent",
+			rollBackgroundColor:"transparent",
+			gradient:.3,
+			corner:30,
+			icon:action
+		}).center(actionControls).pos(null, 10);
+        jumpBtn = new Button({
+            label: jump,
+			width:60,
+			height:60,
+			backgroundColor:"transparent",
+			rollBackgroundColor:"transparent",
+			gradient:.3,
+			corner:30
+		}).center(actionControls).pos(null, -30);
+        actionControls.pos(30, 30 , true, true);
+    }
+
+    frame.on("keydown", function (e) {
+        if (e.keyCode == 37) {
+            crocoboy.run({label:"run", time:200});
+            crocoboy.mov(-15,null);
+        }
+    });
+    frame.on("keydown", function (e) {
+        if (e.keyCode == 39) {
+            crocoboy.run({label:"run", time:200});
+            crocoboy.mov(15,null);
+        }
+    });
+    frame.on("keyup", function (e) {
+        if (e.keyCode == 37) {
+            crocoboy.run({label:"idle", time:500, loop: true});
+        }
+    });
+    frame.on("keyup", function (e) {
+        if (e.keyCode == 37) {
+            crocoboy.run({label:"idle", time:500, loop: true});
+        }
+    });
+    function toStage2() {pages.go(stage2, "up")};
+    function toStage1() {pages.go(stage1, "down")};
+
+    stage.update(); // this is needed to show any changes
 
 }); // end of ready
 
@@ -216,6 +179,6 @@ who are moving left!`
 </head>
 
 <body>
-
+<!-- canvas with id="myCanvas" is made by zim Frame -->
 </body>
 </html>
