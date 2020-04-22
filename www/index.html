@@ -1,0 +1,221 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Mobile App Raman</title>
+
+<script src="libs/createjs_1.1_min.js"></script>
+<script>
+	var zon = true;
+	var zns = false;
+</script>
+<script src="libs/zim_6.9.0.js"></script>
+
+
+<script>
+// var scaling = "fit";
+// var width = 1024;
+// var height = 768;
+
+var frame = new Frame("full");
+frame.on("ready", function() {
+
+    frame.loadAssets(['bowserB.png', 'bowserf.png'], "assets/");
+
+    var stage = frame.stage;
+    var stageW = frame.width;
+    var stageH = frame.height;
+    frame.outerColor = "#444";
+    frame.color = "#ddd";
+
+    frame.on('complete', function(){
+      let bowserbSprite = frame.asset('bowserB.png');
+      let bowserfSprite = frame.asset('bowserf.png');
+
+      let bowserBack = new Sprite({
+        image: bowserbSprite,
+        cols: 11,
+        rows: 1,
+        width: 343,
+        offsetX: 5,
+        animations: {ride:[0,10]}
+      });
+
+      let bowserFront = new Sprite({
+        image: bowserfSprite,
+        cols: 11,
+        rows: 1,
+        width: 340,
+				offsetX: -3,
+        animations: {leftToRight:[0,5]}
+      });
+
+      let layoutManager = new LayoutManager;
+
+      let page1 = new Container();
+      let page2 = new Container();
+
+      //Page 1 stuff
+      let content = new Container(stageW, stageH*0.9).addTo(page1);
+
+      let footer = new Tabs({
+          tabs:["Page1","Page2"]
+      }).addTo(page1);
+
+      let layout1 = new Layout(page1, [
+        {object: content, marginTop:0, backgroundColor:frame.blue},
+        {object: footer, marginTop:1, maxWidth:70, minHeight: 3, height: 5}
+      ], 5, frame.grey, null, new Shape(), stage);
+      layoutManager.add(layout1);
+
+      //Page 2 stuff
+      let content2 = new Container(stageW, stageH*0.9).addTo(page2);
+      // let circle = new Circle(10, frame.green).center(content).drag();
+      let footer2 = new Tabs({
+          tabs:["Page1","Page2"]
+      }).addTo(page2);
+
+      let layout2 = new Layout(page2, [
+        {object: content2, marginTop:0, backgroundColor:frame.blue},
+        {object: footer2, marginTop:1, maxWidth:70, minHeight: 3, height: 5}
+      ], 5, frame.grey, null, new Shape(), stage);
+      layoutManager.add(layout2);
+
+      let pages = new Pages({
+        pages: [
+          {page:page2, swipe:['page1', 'page1', null, null]},
+          {page:page1, swipe:['page2', 'page2', null, null]}
+        ],
+        transition: 'slide',
+        speed: 1000
+      }).addTo();
+
+      footer.on('change', function(){
+        pages.go(page2);
+        footer.selectedIndex = 0;
+      });
+
+      footer2.on('change', function(){
+        pages.go(page1);
+        footer.selectedIndex = 1;
+      });
+
+			let upBowsers = 0;
+			let sideBowsers = 0;
+
+			let directions = new Label({
+				text: 'Tap the bowsers!',
+				size: 20,
+				color: frame.black
+			}).centerReg(content2);
+
+			let bowserNum = new Label({
+			   text:`There are: ${upBowsers} bowsers
+who have gone up!`,
+			   size:20,
+			   font:"courier",
+			   color:"#7647A2"
+		  }).addTo(content).pos(stageW/2 - 125, 200);
+
+			let bowserNum2 = new Label({
+			   text:`There are: ${sideBowsers} bowsers
+who are moving left!`,
+			   size:20,
+			   font:"courier",
+			   color:"#7647A2"
+		  }).addTo(content).pos(stageW/2 - 125, 400);
+
+      bowserBack.centerReg(content2).sca(2).mov(0,-100);
+      bowserBack.run({
+        time: 2000,
+        label: 'ride',
+        rewind: true,
+        loop: true
+      });
+
+			bowserBack.on('click', ()=>{
+				upBowsers += 1;
+				bowserNum.text = `There are: ${upBowsers} bowsers
+who have gone up!`;
+				let coords = randCoord();
+				let fClone = bowserBack.clone().centerReg(content2).mov(coords.x, coords.y);
+				fClone.animate({
+					obj:{y:stageH - (stageH + 20)},
+					ease:"ease",
+					time:2500
+				});
+				fClone.run({
+					time: 2000,
+					label: 'ride',
+					rewind: true,
+					loop: true
+				});
+				stage.update();
+			});
+
+      bowserFront.centerReg(content2).sca(2).mov(0, 200);
+			bowserFront.run({
+				time: 2000,
+				startFrame:5,
+				endFrame: 0,
+				rewind: true,
+				loop: true
+			});
+
+			function randCoord() {
+				let randx = Math.floor(Math.random() * 300) - 150;
+				let randy = Math.floor(Math.random() * 300) - 150;
+				return {
+					x: randx,
+					y: randy
+				}
+			}
+
+			bowserFront.on('click', ()=>{
+				sideBowsers += 1;
+				bowserNum2.text = `There are: ${sideBowsers} bowsers
+who are moving left!`
+				let coords = randCoord();
+				let bClone = bowserFront.clone().centerReg(content2).mov(coords.x, coords.y);
+				bClone.animate({
+					obj:{x:stageW - (stageW + 20)},
+					ease:"ease",
+					time:2500
+				});
+				bClone.run({
+					time: 2000,
+					startFrame:5,
+					endFrame: 0,
+					rewind: true,
+					loop: true
+				});
+				stage.update();
+			});
+
+      frame.on('resize', resize);
+      function resize() {
+        stageW = frame.width;
+        stageH = frame.height;
+        //Resize elements of the page like this
+        //rect.siz(stageW*0.8).pos((stageW - rect.width) * 0.5, 0.05*stageH);
+        layoutManager.resize();
+        stage.update();
+      }
+      resize();
+      layoutManager.dispose();
+    });
+
+    stage.update();
+
+}); // end of ready
+
+</script>
+
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+
+</head>
+
+<body>
+
+</body>
+</html>
