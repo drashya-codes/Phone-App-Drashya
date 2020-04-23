@@ -5,10 +5,10 @@
         id        = "com.sheridan.imm.collective"
         version   = "3.0.1">
 
-    <name>Audiolizr</name>
+    <name>WayFindr</name>
 
     <description>
-        Audio Visualizer
+        Find your way through the maze of the road, while listening to some retro tunes.
     </description>
 
     <author href="http://www.drashyagohil.com" email="drashyagohil@gmail.com">
